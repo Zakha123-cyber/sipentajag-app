@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->text('usage_instruction');
+            $table->string('image_url')->nullable();        // Tambahan kolom gambar
+            $table->string('purchase_link')->nullable();    // Tambahan link pembelian
             $table->timestamps();
         });
     }
