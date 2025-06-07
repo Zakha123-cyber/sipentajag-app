@@ -134,7 +134,7 @@
                                     <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name }}</p>
                                     <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
                                 </div>
-                                <a href="{{ route('profile.edit') }}"
+                                <a href="{{ route('profile.index') }}"
                                     class="flex items-center w-full px-3 py-2 mt-2 text-sm text-gray-700 transition-all duration-200 rounded-lg hover:bg-green-50 hover:text-green-600">
                                     <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -142,7 +142,7 @@
                                     </svg>
                                     Profile
                                 </a>
-                                <a href="{{ route('scan-history') }}"
+                                <a href="{{ route('scan.history') }}"
                                     class="flex items-center w-full px-3 py-2 text-sm text-gray-700 transition-all duration-200 rounded-lg hover:bg-green-50 hover:text-green-600">
                                     <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -291,7 +291,7 @@
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <a href="{{ route('profile.edit') }}"
+                    <a href="{{ route('profile.index') }}"
                         class="flex items-center w-full px-3 py-2 text-base font-medium text-gray-700 transition-all duration-200 rounded-lg hover:bg-gray-50 hover:text-green-600">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -299,7 +299,7 @@
                         </svg>
                         Profile
                     </a>
-                    <a href="{{ route('scan-history') }}"
+                    <a href="{{ route('scan.history') }}"
                         class="flex items-center w-full px-3 py-2 text-base font-medium text-gray-700 transition-all duration-200 rounded-lg hover:bg-gray-50 hover:text-green-600">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

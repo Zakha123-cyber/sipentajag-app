@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ScanController;
-use App\Http\Controllers\ScanHistoryController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
@@ -12,36 +12,38 @@ Route::get('/', function () {
     return view('landing.index');
 })->name('landing');
 
-// Authentication Routes (if you're using Laravel Breeze/Fortify these are already included)
+// Authentication Routes
 require __DIR__ . '/auth.php';
 
-// Protected Routes
+// Admin Routes
+// Route::middleware(['auth', 'role:admin'])->group(function () {
+//     Route::get('/dashboard', [DashboardController::class, 'index'])
+//         ->name('dashboard')
+//         ->middleware('admin');
+// });
+
+// User Protected Routes
 Route::middleware(['auth'])->group(function () {
-    // Home/Dashboard
+    // Home
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    //Scan
-    Route::get('/scan', [ScanController::class, 'index'])->name('scan');
-    Route::post('/scan/process', [ScanController::class, 'process'])->name('scan.process');
-    Route::get('/scan/result/{scan}', [ScanController::class, 'show'])->name('scan.result');
+    // Scan
+    Route::prefix('scan')->group(function () {
+        Route::get('/', [ScanController::class, 'index'])->name('scan');
+        Route::post('/process', [ScanController::class, 'process'])->name('scan.process');
+        Route::get('/result/{scan}', [ScanController::class, 'show'])->name('scan.result');
+        Route::get('/history', [ScanController::class, 'history'])->name('scan.history');
+    });
 
     // Articles
     Route::get('/articles', [ArticleController::class, 'index'])->name('articles');
     Route::get('/articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
 
     // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Scan History
-    Route::get('/scan-history', [ScanHistoryController::class, 'index'])->name('scan-history');
-    Route::get('/scan-history/{scan}', [ScanHistoryController::class, 'show'])->name('scan-history.show');
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'index'])->name('profile.index');
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/update', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    });
 });
-
-Route::get('/scan', function () {
-    return view('scan.scan');
-})->name('scan');
-
-Route::get('/articles', [ArticleController::class, 'index'])->name('articles');
-Route::get('/articles/{article}', [ArticleController::class, 'show'])->name('articles.show');

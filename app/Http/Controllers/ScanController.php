@@ -90,4 +90,14 @@ class ScanController extends Controller
 
         return view('scan.scan-result', compact('scan'));
     }
+
+    public function history()
+    {
+        $scans = Scan::with('disease')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(10);
+
+        return view('scan.scan-history', compact('scans'));
+    }
 }
