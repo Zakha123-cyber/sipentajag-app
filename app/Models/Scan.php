@@ -13,6 +13,7 @@ class Scan extends Model
         'user_id',
         'disease_id',
         'image_path',
+        'result_image_path',
         'confidence',
         'scan_method',
     ];

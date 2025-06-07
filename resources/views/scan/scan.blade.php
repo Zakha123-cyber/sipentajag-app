@@ -127,11 +127,13 @@
             const scanButton = document.getElementById('scan-button');
             let stream = null;
 
+            // Tambahkan ini:
+            const cameraSectionEl = document.getElementById('camera-section');
+            const uploadSectionEl = document.getElementById('upload-section');
+
             function toggleMethod(method) {
                 const cameraBtnEl = document.getElementById('camera-btn');
                 const uploadBtnEl = document.getElementById('upload-btn');
-                const cameraSectionEl = document.getElementById('camera-section');
-                const uploadSectionEl = document.getElementById('upload-section');
 
                 // Reset scan button
                 scanButton.disabled = true;
@@ -222,9 +224,91 @@
 
             // Scan button handling
             scanButton.addEventListener('click', function() {
-                // Add your scan logic here
-                alert('Scanning functionality will be implemented here');
+                let imageBlob = null;
+                let scanMethod = '';
+
+                if (!cameraSectionEl.classList.contains('hidden') && video && !video.classList.contains(
+                        'hidden')) {
+                    scanMethod = 'camera';
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(function(blob) {
+                        imageBlob = blob;
+                        sendToLaravel(imageBlob, scanMethod);
+                    }, 'image/jpeg');
+                } else if (!uploadSectionEl.classList.contains('hidden') && fileInput.files.length > 0) {
+                    scanMethod = 'upload';
+                    imageBlob = fileInput.files[0];
+                    sendToLaravel(imageBlob, scanMethod);
+                } else {
+                    alert('Silakan ambil gambar atau upload gambar terlebih dahulu.');
+                }
             });
+
+            function sendToLaravel(imageBlob, scanMethod) {
+                const formData = new FormData();
+                formData.append('image', imageBlob);
+                formData.append('scan_method', scanMethod);
+
+                scanButton.innerText = 'Memproses...';
+                scanButton.disabled = true;
+
+                fetch("{{ route('scan.process') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: formData
+                    })
+                    .then(async response => {
+                        scanButton.innerText = 'Mulai Scan';
+                        scanButton.disabled = false;
+                        if (!response.ok) {
+                            const err = await response.json();
+                            throw new Error(err.error || 'Terjadi kesalahan pada server');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        showResult(data);
+                    })
+                    .catch(err => {
+                        alert('Gagal melakukan prediksi: ' + err.message);
+                    });
+            }
+
+            function showResult(data) {
+                let html = `
+                    <div class="p-6 mt-8 text-center bg-white shadow rounded-xl">
+                        <h3 class="mb-2 text-xl font-bold text-green-700">Hasil Prediksi</h3>
+                        <img src="${data.image_url}" alt="Hasil Scan" class="mx-auto mb-4 rounded-lg shadow max-h-64">
+                        <div class="mb-2 text-lg">
+                            <span class="font-semibold">Kelas:</span> ${data.predicted_label}
+                        </div>
+                        <div class="mb-2 text-lg">
+                            <span class="font-semibold">Akurasi:</span> ${data.confidence}%
+                        </div>
+                        <div class="mb-2">
+                            <span class="font-semibold">Probabilitas:</span>
+                            <ul class="max-w-xs mx-auto mt-2 text-sm text-left">
+                                ${Object.entries(data.probabilities).map(([k, v]) => `<li>${k}: ${v.toFixed(2)}%</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                // Hapus hasil sebelumnya jika ada
+                let old = document.getElementById('scan-result');
+                if (old) old.remove();
+
+                // Sisipkan hasil baru
+                const container = document.querySelector('.max-w-2xl.mx-auto');
+                const div = document.createElement('div');
+                div.id = 'scan-result';
+                div.innerHTML = html;
+                container.appendChild(div);
+            }
 
             // Make toggleMethod available globally
             window.toggleMethod = toggleMethod;

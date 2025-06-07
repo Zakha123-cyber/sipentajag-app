@@ -22,6 +22,7 @@ Route::middleware(['auth'])->group(function () {
 
     //Scan
     Route::get('/scan', [ScanController::class, 'index'])->name('scan');
+    Route::post('/scan/process', [ScanController::class, 'process'])->name('scan.process');
 
     // Articles
     Route::get('/articles', [ArticleController::class, 'index'])->name('articles');
