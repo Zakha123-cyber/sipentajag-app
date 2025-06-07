@@ -73,13 +73,21 @@ class ScanController extends Controller
             'confidence' => $result['confidence'] ?? null,
         ]);
 
+        // Return URL untuk redirect ke halaman scan-result
         return response()->json([
+            'redirect_url' => route('scan.result', $scan),
             'scan_id' => $scan->id,
-            'image_url' => asset('storage/public/scan/' . $filename),
-            'result_image_url' => asset('storage/public/scan_result/' . $resultImageFilename),
-            'predicted_label' => $result['predicted_label'],
-            'confidence' => $result['confidence'],
-            'probabilities' => $result['probabilities'],
+            'success' => true
         ]);
+    }
+
+    public function show(Scan $scan)
+    {
+        // Authorize that the current user owns this scan
+        if ($scan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return view('scan.scan-result', compact('scan'));
     }
 }

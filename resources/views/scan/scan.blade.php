@@ -272,42 +272,18 @@
                         return response.json();
                     })
                     .then(data => {
-                        showResult(data);
+                        if (data.success && data.redirect_url) {
+                            // Redirect ke halaman scan-result
+                            window.location.href = data.redirect_url;
+                        } else {
+                            throw new Error('Format response tidak valid');
+                        }
                     })
                     .catch(err => {
                         alert('Gagal melakukan prediksi: ' + err.message);
+                        scanButton.innerText = 'Mulai Scan';
+                        scanButton.disabled = false;
                     });
-            }
-
-            function showResult(data) {
-                let html = `
-                    <div class="p-6 mt-8 text-center bg-white shadow rounded-xl">
-                        <h3 class="mb-2 text-xl font-bold text-green-700">Hasil Prediksi</h3>
-                        <img src="${data.image_url}" alt="Hasil Scan" class="mx-auto mb-4 rounded-lg shadow max-h-64">
-                        <div class="mb-2 text-lg">
-                            <span class="font-semibold">Kelas:</span> ${data.predicted_label}
-                        </div>
-                        <div class="mb-2 text-lg">
-                            <span class="font-semibold">Akurasi:</span> ${data.confidence}%
-                        </div>
-                        <div class="mb-2">
-                            <span class="font-semibold">Probabilitas:</span>
-                            <ul class="max-w-xs mx-auto mt-2 text-sm text-left">
-                                ${Object.entries(data.probabilities).map(([k, v]) => `<li>${k}: ${v.toFixed(2)}%</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-                // Hapus hasil sebelumnya jika ada
-                let old = document.getElementById('scan-result');
-                if (old) old.remove();
-
-                // Sisipkan hasil baru
-                const container = document.querySelector('.max-w-2xl.mx-auto');
-                const div = document.createElement('div');
-                div.id = 'scan-result';
-                div.innerHTML = html;
-                container.appendChild(div);
             }
 
             // Make toggleMethod available globally
