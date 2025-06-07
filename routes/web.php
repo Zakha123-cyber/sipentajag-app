@@ -5,6 +5,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
@@ -16,14 +17,20 @@ Route::get('/', function () {
 require __DIR__ . '/auth.php';
 
 // Admin Routes
-// Route::middleware(['auth', 'role:admin'])->group(function () {
-//     Route::get('/dashboard', [DashboardController::class, 'index'])
-//         ->name('dashboard')
-//         ->middleware('admin');
-// });
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // User Management
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+
+    // Add more admin-specific routes here
+    // Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+    // Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+});
 
 // User Protected Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
     // Home
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
