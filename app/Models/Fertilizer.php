@@ -13,6 +13,8 @@ class Fertilizer extends Model
         'name',
         'description',
         'usage_instruction',
+        'image_url',
+        'purchase_link',
     ];
 
     public function diseases()

@@ -33,7 +33,7 @@
                     </p>
                     <div class="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
                         @auth
-                            <a href="#"
+                            <a href="{{ route('scan') }}"
                                 class="px-8 py-4 font-semibold text-center text-white transition-all duration-200 transform bg-green-500 rounded-xl hover:bg-green-600 hover:scale-105 animate-pulse-glow">
                                 Scan Jagungmu!
                             </a>
