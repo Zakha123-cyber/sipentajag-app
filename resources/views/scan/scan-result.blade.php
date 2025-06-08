@@ -106,8 +106,8 @@
                                                                 class="block transition-transform duration-200 hover:scale-105">
                                                                 <div
                                                                     class="overflow-hidden bg-gray-100 rounded-lg aspect-w-1 aspect-h-1">
-                                                                    @if ($fertilizer->image_path)
-                                                                        <img src="{{ asset('storage/' . $fertilizer->image_path) }}"
+                                                                    @if ($fertilizer->image_url)
+                                                                        <img src="{{ asset('storage/' . $fertilizer->image_url) }}"
                                                                             alt="{{ $fertilizer->name }}"
                                                                             class="object-cover w-full h-full transition-transform duration-200 group-hover:scale-110">
                                                                     @else
