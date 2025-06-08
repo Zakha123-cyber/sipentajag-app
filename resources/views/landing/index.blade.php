@@ -142,19 +142,19 @@
         <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
                 <div class="text-center animate-on-scroll">
-                    <div class="mb-2 text-white number-counter" data-target="1500">0</div>
+                    <div class="mb-2 text-white number-counter" data-target="{{ $activeUsers }}">0</div>
                     <div class="font-medium text-white/80">Pengguna Aktif</div>
                 </div>
                 <div class="text-center animate-on-scroll animation-delay-100">
-                    <div class="mb-2 text-white number-counter" data-target="98">0</div>
-                    <div class="font-medium text-white/80">Akurasi Deteksi</div>
+                    <div class="mb-2 text-white number-counter" data-target="{{ $averageAccuracy }}">0</div>
+                    <div class="font-medium text-white/80">Akurasi Deteksi %</div>
                 </div>
                 <div class="text-center animate-on-scroll animation-delay-200">
                     <div class="mb-2 text-white number-counter" data-target="24">0</div>
                     <div class="font-medium text-white/80">Jam Dukungan</div>
                 </div>
                 <div class="text-center animate-on-scroll animation-delay-300">
-                    <div class="mb-2 text-white number-counter" data-target="15">0</div>
+                    <div class="mb-2 text-white number-counter" data-target="{{ $detectedDiseases }}">0</div>
                     <div class="font-medium text-white/80">Penyakit Terdeteksi</div>
                 </div>
             </div>

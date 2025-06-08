@@ -12,9 +12,7 @@ use App\Http\Controllers\Admin\FertilizerController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
-Route::get('/', function () {
-    return view('landing.index');
-})->name('landing');
+Route::get('/', [HomeController::class, 'index'])->name('landing');
 
 // Authentication Routes
 require __DIR__ . '/auth.php';

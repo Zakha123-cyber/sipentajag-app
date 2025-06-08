@@ -59,6 +59,7 @@
                         <div class="relative mb-4 aspect-w-16 aspect-h-9"> <!-- Changed aspect ratio -->
                             <div id="camera-preview" class="flex items-center justify-center bg-gray-100 rounded-xl">
                                 <video id="video" class="hidden object-cover w-full h-full rounded-xl"></video>
+                                <canvas id="canvas" class="hidden object-cover w-full h-full rounded-xl"></canvas>
                                 <div id="camera-placeholder" class="p-6 text-center"> <!-- Reduced padding -->
                                     <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -69,10 +70,20 @@
                                 </div>
                             </div>
                         </div>
-                        <button id="start-camera"
-                            class="w-full py-3 font-semibold text-white transition-all duration-200 shadow-md bg-gradient-to-r from-green-600 to-green-500 rounded-xl hover:from-green-700 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
-                            Aktifkan Kamera
-                        </button>
+                        <div class="flex space-x-3">
+                            <button id="start-camera"
+                                class="flex-1 py-3 font-semibold text-white transition-all duration-200 shadow-md bg-gradient-to-r from-green-600 to-green-500 rounded-xl hover:from-green-700 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                                Aktifkan Kamera
+                            </button>
+                            <button id="capture-photo"
+                                class="flex-1 hidden py-3 font-semibold text-white transition-all duration-200 shadow-md bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                                Ambil Foto
+                            </button>
+                            <button id="retake-photo"
+                                class="flex-1 hidden py-3 font-semibold text-white transition-all duration-200 shadow-md bg-gradient-to-r from-yellow-600 to-yellow-500 rounded-xl hover:from-yellow-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50">
+                                Ambil Ulang
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -125,7 +136,11 @@
             const uploadedImage = document.getElementById('uploaded-image');
             const uploadPlaceholder = document.getElementById('upload-placeholder');
             const scanButton = document.getElementById('scan-button');
+            const canvas = document.getElementById('canvas');
+            const capturePhotoBtn = document.getElementById('capture-photo');
+            const retakePhotoBtn = document.getElementById('retake-photo');
             let stream = null;
+            let capturedImage = null;
 
             // Tambahkan ini:
             const cameraSectionEl = document.getElementById('camera-section');
@@ -185,16 +200,125 @@
                     video.srcObject = stream;
                     video.classList.remove('hidden');
                     cameraPlaceholder.classList.add('hidden');
+                    canvas.classList.add('hidden');
                     video.play();
-                    scanButton.disabled = false;
-                    scanButton.classList.remove('bg-gray-400');
-                    scanButton.classList.add('bg-green-500', 'hover:bg-green-600');
+
+                    // Show capture button, hide start camera
+                    startCamera.classList.add('hidden');
+                    capturePhotoBtn.classList.remove('hidden');
+                    retakePhotoBtn.classList.add('hidden');
+
+                    // Disable scan button until photo is captured
+                    scanButton.disabled = true;
+                    scanButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    scanButton.classList.add('bg-gray-400', 'hover:bg-gray-500');
                 } catch (err) {
                     console.error('Error accessing camera:', err);
                     alert(
                         'Error accessing camera. Please make sure you have granted camera permissions.'
                     );
                 }
+            });
+
+            // Update scan button handling
+            scanButton.addEventListener('click', function() {
+                let scanMethod = '';
+
+                if (!cameraSectionEl.classList.contains('hidden')) {
+                    // Camera mode
+                    scanMethod = 'camera';
+                    if (capturedImage) {
+                        // Use the captured image
+                        sendToLaravel(null, scanMethod);
+                    } else {
+                        alert('Silakan ambil foto terlebih dahulu.');
+                        return;
+                    }
+                } else if (!uploadSectionEl.classList.contains('hidden')) {
+                    // Upload mode
+                    if (fileInput.files.length > 0) {
+                        scanMethod = 'upload';
+                        sendToLaravel(fileInput.files[0], scanMethod);
+                    } else {
+                        alert('Silakan pilih file gambar terlebih dahulu.');
+                        return;
+                    }
+                }
+            });
+
+            // Update sendToLaravel function
+            function sendToLaravel(imageBlob, scanMethod) {
+                const formData = new FormData();
+
+                if (scanMethod === 'camera') {
+                    // Convert captured image from base64 to blob
+                    const base64Data = capturedImage.split(',')[1];
+                    const binaryData = atob(base64Data);
+                    const byteArray = new Uint8Array(binaryData.length);
+
+                    for (let i = 0; i < binaryData.length; i++) {
+                        byteArray[i] = binaryData.charCodeAt(i);
+                    }
+
+                    const imageBlob = new Blob([byteArray], {
+                        type: 'image/jpeg'
+                    });
+                    formData.append('image', imageBlob, 'captured-image.jpg');
+                } else {
+                    formData.append('image', imageBlob);
+                }
+
+                formData.append('scan_method', scanMethod);
+                sendRequest(formData);
+            }
+
+            // Update capture photo functionality
+            capturePhotoBtn.addEventListener('click', function() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+
+                // Flip horizontally if using front camera
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Reset transformation
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+                capturedImage = canvas.toDataURL('image/jpeg', 0.8);
+
+                // Show canvas with captured image
+                video.classList.add('hidden');
+                canvas.classList.remove('hidden');
+
+                // Update buttons
+                capturePhotoBtn.classList.add('hidden');
+                retakePhotoBtn.classList.remove('hidden');
+
+                // Enable scan button
+                scanButton.disabled = false;
+                scanButton.classList.remove('bg-gray-400', 'hover:bg-gray-500');
+                scanButton.classList.add('bg-green-500', 'hover:bg-green-600');
+            });
+
+            // Add retake photo functionality
+            retakePhotoBtn.addEventListener('click', function() {
+                // Show video stream again
+                video.classList.remove('hidden');
+                canvas.classList.add('hidden');
+
+                // Reset capture image
+                capturedImage = null;
+
+                // Update buttons
+                capturePhotoBtn.classList.remove('hidden');
+                retakePhotoBtn.classList.add('hidden');
+
+                // Disable scan button
+                scanButton.disabled = true;
+                scanButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                scanButton.classList.add('bg-gray-400', 'hover:bg-gray-500');
             });
 
             // File upload handling
@@ -222,36 +346,7 @@
                 }
             });
 
-            // Scan button handling
-            scanButton.addEventListener('click', function() {
-                let imageBlob = null;
-                let scanMethod = '';
-
-                if (!cameraSectionEl.classList.contains('hidden') && video && !video.classList.contains(
-                        'hidden')) {
-                    scanMethod = 'camera';
-                    const canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                    canvas.toBlob(function(blob) {
-                        imageBlob = blob;
-                        sendToLaravel(imageBlob, scanMethod);
-                    }, 'image/jpeg');
-                } else if (!uploadSectionEl.classList.contains('hidden') && fileInput.files.length > 0) {
-                    scanMethod = 'upload';
-                    imageBlob = fileInput.files[0];
-                    sendToLaravel(imageBlob, scanMethod);
-                } else {
-                    alert('Silakan ambil gambar atau upload gambar terlebih dahulu.');
-                }
-            });
-
-            function sendToLaravel(imageBlob, scanMethod) {
-                const formData = new FormData();
-                formData.append('image', imageBlob);
-                formData.append('scan_method', scanMethod);
-
+            function sendRequest(formData) {
                 scanButton.innerText = 'Memproses...';
                 scanButton.disabled = true;
 
@@ -263,8 +358,6 @@
                         body: formData
                     })
                     .then(async response => {
-                        scanButton.innerText = 'Mulai Scan';
-                        scanButton.disabled = false;
                         if (!response.ok) {
                             const err = await response.json();
                             throw new Error(err.error || 'Terjadi kesalahan pada server');
@@ -273,7 +366,6 @@
                     })
                     .then(data => {
                         if (data.success && data.redirect_url) {
-                            // Redirect ke halaman scan-result
                             window.location.href = data.redirect_url;
                         } else {
                             throw new Error('Format response tidak valid');
